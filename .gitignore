@@ -34,3 +34,6 @@
 
 # IDE settings
 *.vscode
+
+#Cmake Folder
+/build/

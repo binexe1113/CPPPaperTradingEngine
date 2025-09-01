@@ -8,7 +8,7 @@ struct Portfolio {
 
     Portfolio(double initial_cash);
 
-    void buyStock(const std::string& symbol, int shares, double pricePerShare);
-    void sellStock(const std::string& symbol, int shares, double pricePerShare);
+    void buyStock(const std::string& symbol, int sharesQtd, double pricePerShare);
+    void sellStock(const std::string& symbol, int sharesQtd, double pricePerShare);
     void printPortfolio() const;
 };
