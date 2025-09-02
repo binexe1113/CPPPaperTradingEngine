@@ -17,8 +17,8 @@ add_executable(CPPPaperTradingEngine)
 target_sources(CPPPaperTradingEngine PRIVATE
     main.cpp
     core/Portfolio.cpp
-    core/Trade.cpp
     utils/PriceFetcher.cpp
+    threads/TradeWorker.cpp
 )
 
 # Specify the directories where your header files (.h, .hpp) are located.

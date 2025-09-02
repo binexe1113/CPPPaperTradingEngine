@@ -3,6 +3,8 @@
 #include<chrono>
 #include<ctime>
 
+//Just for the struct TRADE to LOG
+
 struct Trade{
     std::string symbol;
     int quantity;
