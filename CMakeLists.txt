@@ -18,6 +18,7 @@ target_sources(CPPPaperTradingEngine PRIVATE
     main.cpp
     core/Portfolio.cpp
     core/Trade.cpp
+    utils/PriceFetcher.cpp
 )
 
 # Specify the directories where your header files (.h, .hpp) are located.

@@ -7,20 +7,20 @@ Portfolio::Portfolio(double initial_cash) : cash(initial_cash) {} //Constructor
 void Portfolio::buyStock(const std::string& symbol, int sharesQtd, double pricePerShare){
     double cost = sharesQtd * pricePerShare;
     if (cost > cash){
-        throw std::runtime_error("Insufficient funds to buy" + symbol);
+        throw std::runtime_error("Insufficient funds to buy " + symbol);
     }
 
     cash -= cost;
     holdings[symbol] += sharesQtd;
-    std::cout << "Bought " << sharesQtd << "shares of " << symbol
-              << "at $" << pricePerShare << "each. Remaining cash: $" << cash << "\n"; 
+    std::cout << "Bought " << sharesQtd << " shares of " << symbol
+              << " @ $" << pricePerShare << " each. Remaining cash: $" << cash << "\n"; 
 
     tradeLog.emplace_back(symbol,sharesQtd,pricePerShare,"BUY");
 }
 
 void Portfolio::sellStock(const std::string& symbol, int sharesQtd, double pricePerShare){
     if(holdings[symbol] < sharesQtd){
-        throw std::runtime_error("Not enough shares of " + symbol + "to sell");
+        throw std::runtime_error("Not enough shares of " + symbol + " to sell");
     }
 
     holdings[symbol] -= sharesQtd;
