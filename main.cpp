@@ -2,13 +2,31 @@
 #include <iostream>
 
 int main() {
+    std::string symbol;
+    int quantity;
+    double currentPrice;
     try {
         Portfolio portfolio(10000.0); // start with $10,000
 
-        portfolio.buyStock("AAPL", 10, 150.0);
-        portfolio.buyStock("MSFT", 5, 200.0);
-        portfolio.sellStock("AAPL", 5, 155.0);
+        std::cout<<"Enter ticker symbol";
+        std::cin >> symbol;
+
+        std::cout << "Enter the quantity";
+        std::cin >> quantity;
+
+        std::cout<< "Enter the price";
+        std::cin >> currentPrice;
+
+        portfolio.buyStock(symbol, quantity, currentPrice);
         portfolio.printPortfolio();
+
+        std::cout << "Lets sell";
+        system("pause");
+        portfolio.sellStock(symbol,quantity,currentPrice);
+        portfolio.printPortfolio();
+
+        portfolio.printTradeLog(); 
+
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";

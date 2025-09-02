@@ -14,6 +14,8 @@ void Portfolio::buyStock(const std::string& symbol, int sharesQtd, double priceP
     holdings[symbol] += sharesQtd;
     std::cout << "Bought " << sharesQtd << "shares of " << symbol
               << "at $" << pricePerShare << "each. Remaining cash: $" << cash << "\n"; 
+
+    tradeLog.emplace_back(symbol,sharesQtd,pricePerShare,"BUY");
 }
 
 void Portfolio::sellStock(const std::string& symbol, int sharesQtd, double pricePerShare){
@@ -27,6 +29,9 @@ void Portfolio::sellStock(const std::string& symbol, int sharesQtd, double price
     if (holdings[symbol] == 0){
         holdings.erase(symbol);
     }   
+
+    tradeLog.emplace_back(symbol,sharesQtd,pricePerShare,"SELL");
+
 }
 
 void Portfolio::printPortfolio() const{
@@ -40,4 +45,20 @@ void Portfolio::printPortfolio() const{
     }
     
     std::cout<<"==================";
+}
+
+void Portfolio::printTradeLog() const{
+    std::cout<<"\n === Trade Log ===\n";
+        for (const auto& trade : tradeLog) {
+        std::tm* tm = std::localtime(&trade.timestamp);
+        char timeStr[20];
+        std::strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", tm);
+
+        std::cout << trade.type << " "
+                  << trade.quantity << " " << trade.symbol
+                  << " @ $" << std::fixed << std::setprecision(2) << trade.price
+                  << " [" << timeStr << "]\n";
+    }
+
+
 }

@@ -16,7 +16,8 @@ add_executable(CPPPaperTradingEngine)
 # If you create new source files, you should add them to this list.
 target_sources(CPPPaperTradingEngine PRIVATE
     main.cpp
-    core/portfolio.cpp
+    core/Portfolio.cpp
+    core/Trade.cpp
 )
 
 # Specify the directories where your header files (.h, .hpp) are located.
