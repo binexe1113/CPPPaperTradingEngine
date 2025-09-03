@@ -4,13 +4,15 @@
 #include <unordered_map>
 
 class PriceFetcher {
+private:
+    std::vector<std::string> symbols;
+    std::unordered_map<std::string, double> prices;
+
 public:
     PriceFetcher(const std::vector<std::string>& symbols);
 
-    std::unordered_map<std::string, double> generatePrices(); 
+    void updatePrices();  // updates existing prices
+    double getPrice(const std::string& symbol); 
     std::string getRandomSymbol();
-    double getPrice(const std::string& symbol);
-
-private:
-    std::vector<std::string> symbols;
+    void printPrices() const; // optional, useful for debugging
 };
