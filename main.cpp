@@ -18,7 +18,7 @@ std::mutex portfolioMutex; // protect portfolio when accessed from UI + thread
 void priceUpdater(PriceFetcher& fetcher) {
     while (running) {
         fetcher.updatePrices();
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 }
 
@@ -72,7 +72,7 @@ int main() {
                             ImGui::TableNextRow();
                 ImGui::TableNextColumn(); ImGui::Text("%s", pos.first.c_str()); // symbol
                 ImGui::TableNextColumn(); ImGui::Text("%d", pos.second);        // quantity
-                ImGui::TableNextColumn(); ImGui::Text("-");                     // avgPrice not tracked
+                ImGui::TableNextColumn(); ImGui::Text("-");                     // avgPrice not tracked yet! add maybe dont know if useful
             }
                 ImGui::EndTable();
             }

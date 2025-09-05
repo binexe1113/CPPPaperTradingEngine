@@ -26,9 +26,13 @@ void Portfolio::sellStock(const std::string& symbol, int sharesQtd, double price
     holdings[symbol] -= sharesQtd;
     cash += sharesQtd * pricePerShare;
 
+
     if (holdings[symbol] == 0){
         holdings.erase(symbol);
     }   
+
+        std::cout << "Sold " << sharesQtd << " shares of " << symbol
+              << " @ $" << pricePerShare << " each. Remaining cash: $" << cash << "\n"; 
 
     tradeLog.emplace_back(symbol,sharesQtd,pricePerShare,"SELL");
 
