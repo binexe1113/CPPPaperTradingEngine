@@ -1,70 +1,126 @@
 #include "core/portfolio.h"
 #include "utils/PriceFetcher.h"
-#include <iostream>
-#include <thread>
-#include <chrono>
-#include <atomic>
-#include <cstdlib>
 
-std::atomic<bool> running(true); // control flag for stopping threads
+#include "imgui.h"
+#include "implot.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+
+#include <GLFW/glfw3.h>
+#include <thread>
+#include <atomic>
+#include <chrono>
+#include <mutex>
+
+std::atomic<bool> running(true);
+std::mutex portfolioMutex; // protect portfolio when accessed from UI + thread
 
 void priceUpdater(PriceFetcher& fetcher) {
     while (running) {
-        fetcher.updatePrices(); // You need to implement this inside PriceFetcher
+        fetcher.updatePrices();
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
 
-void userInputHandler(Portfolio& portfolio, PriceFetcher& fetcher) {
-    std::string symbol;
-    int quantity;
-    std::string action;
-
-    while (running) {
-        std::cout << "\nEnter command (buy/sell symbol quantity) or 'quit': ";
-        std::cin >> action;
-        if (action == "quit") {
-            running = false;
-            break;
-        }
-        std::cin >> symbol >> quantity;
-
-        try {
-            double price = fetcher.getPrice(symbol);
-            if (action == "buy") {
-                portfolio.buyStock(symbol, quantity, price);
-            } else if (action == "sell") {
-                portfolio.sellStock(symbol, quantity, price);
-            } else {
-                std::cout << "Invalid action.\n";
-            }
-        } catch (const std::exception& e) {
-            std::cerr << "Error: " << e.what() << "\n";
-        }
-    }
-}
-
 int main() {
-    try {
-        std::vector<std::string> symbols = {"AAPL", "GOOG", "MSFT", "AMZN", "TSLA"};
-        Portfolio portfolio(10000.0); // start with $10,000
-        PriceFetcher fetcher(symbols);
+    std::vector<std::string> symbols = {"AAPL", "GOOG", "MSFT", "AMZN", "TSLA"};
+    Portfolio portfolio(10000.0);
+    PriceFetcher fetcher(symbols);
 
-        // Start threads
-        std::thread priceThread(priceUpdater, std::ref(fetcher));
-        std::thread inputThread(userInputHandler, std::ref(portfolio), std::ref(fetcher));
+    // ---- Start price updater thread ----
+    std::thread priceThread(priceUpdater, std::ref(fetcher));
 
-        // Wait for threads
-        inputThread.join();
-        running = false; // stop price thread after user quits
-        priceThread.join();
+    // ---- Setup GLFW + ImGui ----
+    if (!glfwInit()) return -1;
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "Paper Trading Engine", nullptr, nullptr);
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
 
-        // Print final portfolio and trade log
-        portfolio.printPortfolio();
-        portfolio.printTradeLog();
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImPlot::CreateContext();
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
 
-        return 0;
-    } catch (const std::exception& e) {
-        std::cerr << "Fatal Error: " << e.what() << "\n";
+    // ---- GUI State ----
+    static char symbol[16] = "AAPL";
+    static int quantity = 1;
+
+    while (!glfwWindowShouldClose(window) && running) {
+        glfwPollEvents();
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // --- Portfolio Panel ---
+        {
+            std::lock_guard lock(portfolioMutex);
+            ImGui::Begin("Portfolio");
+            ImGui::Text("Cash: $%.2f", portfolio.getCash());
+            ImGui::Separator();
+
+            if (ImGui::BeginTable("positions", 3)) {
+                ImGui::TableSetupColumn("Symbol");
+                ImGui::TableSetupColumn("Quantity");
+                ImGui::TableSetupColumn("Avg Price");
+                ImGui::TableHeadersRow();
+
+            for (const auto& pos : portfolio.getPositions()) {
+                            ImGui::TableNextRow();
+                ImGui::TableNextColumn(); ImGui::Text("%s", pos.first.c_str()); // symbol
+                ImGui::TableNextColumn(); ImGui::Text("%d", pos.second);        // quantity
+                ImGui::TableNextColumn(); ImGui::Text("-");                     // avgPrice not tracked
+            }
+                ImGui::EndTable();
+            }
+            ImGui::End();
+        }
+
+        // --- Order Entry Panel ---
+        ImGui::Begin("Order Entry");
+        ImGui::InputText("Symbol", symbol, sizeof(symbol));
+        ImGui::InputInt("Quantity", &quantity);
+        if (ImGui::Button("Buy")) {
+            std::lock_guard lock(portfolioMutex);
+            portfolio.buyStock(symbol, quantity, fetcher.getPrice(symbol));
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Sell")) {
+            std::lock_guard lock(portfolioMutex);
+            portfolio.sellStock(symbol, quantity, fetcher.getPrice(symbol));
+        }
+        ImGui::End();
+
+        // --- Prices Panel ---
+        ImGui::Begin("Prices");
+        for (auto& sym : symbols) {
+            ImGui::Text("%s: %.2f", sym.c_str(), fetcher.getPrice(sym));
+        }
+        ImGui::End();
+
+        // --- Render ---
+        ImGui::Render();
+        int w, h;
+        glfwGetFramebufferSize(window, &w, &h);
+        glViewport(0, 0, w, h);
+        glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        glfwSwapBuffers(window);
     }
+
+    // ---- Cleanup ----
+    running = false;
+    priceThread.join();
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImPlot::DestroyContext();
+    ImGui::DestroyContext();
+    glfwDestroyWindow(window);
+    glfwTerminate();
+
+    return 0;
 }
