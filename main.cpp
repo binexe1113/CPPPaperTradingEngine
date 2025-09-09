@@ -83,12 +83,12 @@ int main() {
         ImGui::Begin("Order Entry");
         ImGui::InputText("Symbol", symbol, sizeof(symbol));
         ImGui::InputInt("Quantity", &quantity);
-        if (ImGui::Button("Buy")) {
+        if (ImGui::Button("Buy")) { //FIX BUG WHERE CRASHES IF TRY TO BUY AND DONT HAVE MONEY 
             std::lock_guard lock(portfolioMutex);
             portfolio.buyStock(symbol, quantity, fetcher.getPrice(symbol));
         }
         ImGui::SameLine();
-        if (ImGui::Button("Sell")) {
+        if (ImGui::Button("Sell")) { //FIX BUG WHERE SELL MORE STOCK THAN POSSIBLE AND SMTMS CRASHES
             std::lock_guard lock(portfolioMutex);
             portfolio.sellStock(symbol, quantity, fetcher.getPrice(symbol));
         }
@@ -100,6 +100,47 @@ int main() {
             ImGui::Text("%s: %.2f", sym.c_str(), fetcher.getPrice(sym));
         }
         ImGui::End();
+
+        //--- Trade Log Panel ---
+        { // TO NOT LEAK ONLY 
+            std::lock_guard lock(portfolioMutex);
+            ImGui::Begin("Trade Log");
+
+            //Table definition
+            if (ImGui::BeginTable("trades",5,ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)){
+                ImGui::TableSetupColumn("Action");
+                ImGui::TableSetupColumn("Symbol");
+                ImGui::TableSetupColumn("Quantity");
+                ImGui::TableSetupColumn("Price");
+                ImGui::TableSetupColumn("Timestamp");
+                ImGui::TableHeadersRow();
+
+                for (const auto& trade: portfolio.getTrades()){
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn(); ImGui::Text("%s", trade.type.c_str());
+                    ImGui::TableNextColumn(); ImGui::Text("%s",trade.symbol.c_str());
+                    ImGui::TableNextColumn(); ImGui::Text("%d",trade.quantity);
+                    ImGui::TableNextColumn(); ImGui::Text("%d",trade.price);
+                
+
+            //Table updater
+            char bufer[20];
+            std::tm* tm = std::localtime(&trade.timestamp);
+            std::strftime(bufer,sizeof(bufer),"%H:%M:%S", tm);
+            ImGui::TableNextColumn();ImGui::Text("%s",bufer);
+
+                }
+
+                ImGui::EndTable();
+            }
+
+            ImGui::End();
+        }
+
+
+
+                
+            
 
         // --- Render ---
         ImGui::Render();
