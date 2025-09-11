@@ -80,30 +80,52 @@ int main() {
         }
 
         // --- Order Entry Panel ---
-        ImGui::Begin("Order Entry");
-        ImGui::InputText("Symbol", symbol, sizeof(symbol));
+            ImGui::Begin("Order Entry");
+                static int selectedSymbolIndex = 0;
+        // Make sure current index is valid
+        if (selectedSymbolIndex >= (int)symbols.size()) {
+            selectedSymbolIndex = 0;
+        }
+        
+        if (ImGui::BeginCombo("Symbol", symbols[selectedSymbolIndex].c_str())) {
+            for (int n = 0; n < (int)symbols.size(); n++) {
+                bool isSelected = (selectedSymbolIndex == n);
+                if (ImGui::Selectable(symbols[n].c_str(), isSelected)) {
+                    selectedSymbolIndex = n;
+                }
+                if (isSelected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+        
         ImGui::InputInt("Quantity", &quantity);
-        if (ImGui::Button("Buy")) { //FIX BUG WHERE CRASHES IF TRY TO BUY AND DONT HAVE MONEY 
+        
+        if (ImGui::Button("Buy")) { // FIX BUG: crashes if not enough money
             std::lock_guard lock(portfolioMutex);
-            portfolio.buyStock(symbol, quantity, fetcher.getPrice(symbol));
+            portfolio.buyStock(symbols[selectedSymbolIndex], quantity, fetcher.getPrice(symbols[selectedSymbolIndex]));
         }
+        
         ImGui::SameLine();
-        if (ImGui::Button("Sell")) { //FIX BUG WHERE SELL MORE STOCK THAN POSSIBLE AND SMTMS CRASHES
+        
+        if (ImGui::Button("Sell")) { // FIX BUG: selling more stock than owned
             std::lock_guard lock(portfolioMutex);
-            portfolio.sellStock(symbol, quantity, fetcher.getPrice(symbol));
+            portfolio.sellStock(symbols[selectedSymbolIndex], quantity, fetcher.getPrice(symbols[selectedSymbolIndex]));
         }
+        
         ImGui::End();
-
-        // --- Prices Panel ---
-        ImGui::Begin("Prices");
-        for (auto& sym : symbols) {
-            ImGui::Text("%s: %.2f", sym.c_str(), fetcher.getPrice(sym));
-        }
-        ImGui::End();
-
-        //--- Trade Log Panel ---
-        { // TO NOT LEAK ONLY 
-            std::lock_guard lock(portfolioMutex);
+        
+                // --- Prices Panel ---
+                ImGui::Begin("Prices");
+                for (auto& sym : symbols) {
+                    ImGui::Text("%s: %.2f", sym.c_str(), fetcher.getPrice(sym));
+                }
+                ImGui::End();
+            
+                //--- Trade Log Panel ---
+                { // TO NOT LEAK ONLY 
+                std::lock_guard lock(portfolioMutex);
             ImGui::Begin("Trade Log");
 
             //Table definition
@@ -120,7 +142,7 @@ int main() {
                     ImGui::TableNextColumn(); ImGui::Text("%s", trade.type.c_str());
                     ImGui::TableNextColumn(); ImGui::Text("%s",trade.symbol.c_str());
                     ImGui::TableNextColumn(); ImGui::Text("%d",trade.quantity);
-                    ImGui::TableNextColumn(); ImGui::Text("%d",trade.price);
+                    ImGui::TableNextColumn(); ImGui::Text("%.2f",trade.price);
                 
 
             //Table updater
