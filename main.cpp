@@ -1,21 +1,31 @@
 #include "core/portfolio.h"
+
 #include "utils/PriceFetcher.h"
 
 #include "imgui.h"
+
 #include "implot.h"
+
 #include "backends/imgui_impl_glfw.h"
+
 #include "backends/imgui_impl_opengl3.h"
 
 #include <GLFW/glfw3.h>
+
 #include <thread>
+
 #include <atomic>
+
+#include <ctime>
+
 #include <chrono>
+
 #include <mutex>
 
-std::atomic<bool> running(true);
+std::atomic < bool > running(true);
 std::mutex portfolioMutex; // protect portfolio when accessed from UI + thread
 
-void priceUpdater(PriceFetcher& fetcher) {
+void priceUpdater(PriceFetcher & fetcher) {
     while (running) {
         fetcher.updatePrices();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -159,15 +169,50 @@ int main() {
             ImGui::End();
         }
 
+        // --- Price Chart Panel ---
+        ImGui::Begin("Price Chart");
 
+        // Symbol selector (separate from Order Entry)
+        static int selectedGraphIndex = 0;
+        if (ImGui::BeginCombo("Symbol", symbols[selectedGraphIndex].c_str())) {
+            for (int n = 0; n < (int) symbols.size(); n++) {
+                bool isSelected = (selectedGraphIndex == n);
+                if (ImGui::Selectable(symbols[n].c_str(), isSelected)) {
+                    selectedGraphIndex = n;
+                }
+                if (isSelected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
 
-                
-            
+        // Retrieve history for selected symbol
+        const auto & hist = fetcher.getHistory(symbols[selectedGraphIndex]);
+        if (!hist.empty()) {
+            std::vector < double > xs, ys;
+            xs.reserve(hist.size());
+            ys.reserve(hist.size());
+
+            for (auto & pt: hist) {
+                xs.push_back((double) pt.timestamp); // X = time_t
+                ys.push_back(pt.price); // Y = price
+            }
+
+            if (ImPlot::BeginPlot("Price vs Time", ImVec2(-1, 300))) {
+                ImPlot::SetupAxes("Time", "Price");
+                ImPlot::SetupAxisScale(ImAxis_X1, ImPlotScale_Time); // interpret x as time_t
+                ImPlot::PlotLine(symbols[selectedGraphIndex].c_str(), xs.data(), ys.data(), (int) xs.size());
+                ImPlot::EndPlot();
+            }
+        }
+
+        ImGui::End();
 
         // --- Render ---
         ImGui::Render();
         int w, h;
-        glfwGetFramebufferSize(window, &w, &h);
+        glfwGetFramebufferSize(window, & w, & h);
         glViewport(0, 0, w, h);
         glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
