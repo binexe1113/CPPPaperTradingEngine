@@ -1,6 +1,6 @@
 #include "core/portfolio.h"
 
-#include "api/tickerloader.h"
+#include "symbols/tickerloader.h"
 
 #include "utils/PriceFetcher.h"
 
@@ -37,7 +37,7 @@ void priceUpdater(PriceFetcher & fetcher) {
 }
 
 int main() {
-    auto symbols = loadTickers("../../api/ibov_yahoo.csv");
+    auto symbols = loadTickers("../../symbols/ibov_yahoo.csv");
     //FOR DEBUG//
     {
         std::cout << "Loaded" << symbols.size() << "symbols\n";

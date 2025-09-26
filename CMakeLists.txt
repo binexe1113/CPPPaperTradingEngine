@@ -54,7 +54,7 @@ add_executable(CPPPaperTradingEngine
     main.cpp
     core/Portfolio.cpp
     utils/PriceFetcher.cpp
-    api/tickerloader.cpp
+    symbols/tickerloader.cpp
 )
 
 # Include your headers
