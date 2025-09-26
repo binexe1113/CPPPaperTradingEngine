@@ -2,6 +2,8 @@
 
 #include "symbols/tickerloader.h"
 
+#include "api/yhfinance.h"
+
 #include "utils/PriceFetcher.h"
 
 #include "imgui.h"
@@ -37,6 +39,8 @@ void priceUpdater(PriceFetcher & fetcher) {
 }
 
 int main() {
+    YahooFinanceAPI yahoo;
+
     auto symbols = loadTickers("../../symbols/ibov_yahoo.csv");
     //FOR DEBUG//
     {
@@ -44,11 +48,13 @@ int main() {
         for (auto& s:symbols)
         std::cout << s << std::endl;
     }
+
+
+    std::thread updateThread(&YahooFinanceAPI:: priceUpdater, &yahoo, symbols, 5);//method, class, seconds for delay
+
     Portfolio portfolio(10000.0);
     PriceFetcher fetcher(symbols);
 
-    // ---- Start price updater thread ----
-    std::thread priceThread(priceUpdater, std::ref(fetcher));
 
     // ---- Setup GLFW + ImGui ----
     if (!glfwInit()) return -1;
@@ -239,7 +245,7 @@ int main() {
 
     // ---- Cleanup ----
     running = false;
-    priceThread.join();
+    updateThread.join();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImPlot::DestroyContext();

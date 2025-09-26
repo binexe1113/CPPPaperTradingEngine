@@ -55,6 +55,7 @@ add_executable(CPPPaperTradingEngine
     core/Portfolio.cpp
     utils/PriceFetcher.cpp
     symbols/tickerloader.cpp
+    api/yhfinance.cpp
 )
 
 # Include your headers
