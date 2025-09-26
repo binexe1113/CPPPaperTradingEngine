@@ -1,5 +1,7 @@
 #include "core/portfolio.h"
 
+#include "api/tickerloader.h"
+
 #include "utils/PriceFetcher.h"
 
 #include "imgui.h"
@@ -11,6 +13,8 @@
 #include "backends/imgui_impl_opengl3.h"
 
 #include <GLFW/glfw3.h>
+
+#include <iostream>
 
 #include <thread>
 
@@ -28,18 +32,18 @@ std::mutex portfolioMutex; // protect portfolio when accessed from UI + thread
 void priceUpdater(PriceFetcher & fetcher) {
     while (running) {
         fetcher.updatePrices();
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 }
 
 int main() {
-    std::vector < std::string > symbols = {
-        "AAPL",
-        "GOOG",
-        "MSFT",
-        "AMZN",
-        "TSLA"
-    };
+    auto symbols = loadTickers("../../api/ibov_yahoo.csv");
+    //FOR DEBUG//
+    {
+        std::cout << "Loaded" << symbols.size() << "symbols\n";
+        for (auto& s:symbols)
+        std::cout << s << std::endl;
+    }
     Portfolio portfolio(10000.0);
     PriceFetcher fetcher(symbols);
 
