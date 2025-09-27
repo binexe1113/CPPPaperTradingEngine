@@ -13,10 +13,32 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # --------------------------------------------------------
 add_subdirectory(vendor/glfw)
 
+# httplib is header-only, you don’t need add_subdirectory unless you wrapped it
+# add_subdirectory(vendor/httplib)
+
+# --------------------------------------------------------
+# libcurl (from submodule)
+# --------------------------------------------------------
+set(BUILD_CURL_EXE OFF CACHE BOOL "Don't build curl executable" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static curl" FORCE)
+
+# Enable SSL via OpenSSL
+set(ENABLE_SSL ON CACHE BOOL "Enable SSL" FORCE)
+set(CURL_USE_OPENSSL ON CACHE BOOL "Use OpenSSL" FORCE)
+
+# Disable optional stuff that often breaks Windows builds
+set(CURL_USE_LIBPSL OFF CACHE BOOL "Disable libpsl" FORCE)
+set(CURL_ZLIB OFF CACHE BOOL "Disable zlib" FORCE)
+
+# Add curl submodule
+add_subdirectory(vendor/curl)
+# nlohmann/json is header-only
+set(NLOHMANN_JSON_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/json/single_include)
+
 # --------------------------------------------------------
 # OpenGL (system)
 # --------------------------------------------------------
-find_package(OpenGL REQUIRED)  # <-- you were missing this
+find_package(OpenGL REQUIRED)
 
 # --------------------------------------------------------
 # Dear ImGui
@@ -55,16 +77,23 @@ add_executable(CPPPaperTradingEngine
     core/Portfolio.cpp
     utils/PriceFetcher.cpp
     symbols/tickerloader.cpp
-    api/yhfinance.cpp
+    api/TiingoFinance.cpp
 )
 
 # Include your headers
 target_include_directories(CPPPaperTradingEngine PRIVATE
     ${PROJECT_SOURCE_DIR}/include
+    ${NLOHMANN_JSON_INCLUDE_DIR}
 )
 
-# Link your app with ImGui + ImPlot + GLFW + OpenGL
-target_link_libraries(CPPPaperTradingEngine PRIVATE imgui implot glfw OpenGL::GL)
+# Link everything
+target_link_libraries(CPPPaperTradingEngine PRIVATE
+    imgui
+    implot
+    glfw
+    OpenGL::GL
+    libcurl   # <-- curl finally linked!
+)
 
 # --------------------------------------------------------
 # Message

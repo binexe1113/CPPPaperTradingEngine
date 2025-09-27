@@ -45,12 +45,12 @@ int main() {
     //FOR DEBUG//
     {
         std::cout << "Loaded" << symbols.size() << "symbols\n";
-        for (auto& s:symbols)
-        std::cout << s << std::endl;
+        //for (auto& s:symbols)
+        //std::cout << s << std::endl;
     }
 
 
-    std::thread updateThread(&YahooFinanceAPI:: priceUpdater, &yahoo, symbols, 5);//method, class, seconds for delay
+    std::thread updateThread(&YahooFinanceAPI:: priceUpdater, &yahoo, symbols, 100);//method, class, seconds for delay
 
     Portfolio portfolio(10000.0);
     PriceFetcher fetcher(symbols);
@@ -229,6 +229,7 @@ int main() {
                 ImPlot::EndPlot();
             }
         }
+       // std::cout<<"NO PRICES TO GRAPH"<<std::endl;
 
         ImGui::End();
 

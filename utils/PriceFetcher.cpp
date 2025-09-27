@@ -1,32 +1,37 @@
 #include "PriceFetcher.h"
-#include <random>
+#include "TiingoFinance.h" // use the Tiingo API class
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 PriceFetcher::PriceFetcher(const std::vector<std::string>& symbols)
     : symbols(symbols)
 {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(50.0, 500.0);
+    // Initialize prices by fetching from Tiingo
+    TiingoFinanceAPI api;
 
     for (const auto& symbol : symbols) {
-        prices[symbol] = dis(gen);
-        history[symbol].push_back( PricePoint(prices[symbol], std::time(nullptr)) );
+        double price = api.getPrice(symbol);
+        if (price <= 0.0) price = 1.0; // fallback
+        prices[symbol] = price;
+        history[symbol].push_back(PricePoint(price, std::time(nullptr)));
     }
 }
 
-
+// Update prices by fetching new data from Tiingo
 void PriceFetcher::updatePrices() {
-    for (auto& [symbol, price] : prices) {
-        double change = ((rand() % 2001) - 1000) / 100.0; // random change [-10, +10]
-        price += change;
-        if (price < 1.0) price = 1.0; // avoid negative/zero prices
+    TiingoFinanceAPI api;
 
-        // store history (now works because PricePoint(double, time_t) exists)
+    for (auto& [symbol, price] : prices) {
+        double newPrice = api.getPrice(symbol);
+        if (newPrice <= 0.0) newPrice = price; // fallback to last known
+
+        price = newPrice;
+
         PricePoint p(price, std::time(nullptr));
         auto& hist = history[symbol];
         hist.push_back(p);
-        if (hist.size() > 500) hist.pop_front(); // keep last 500 points
+        if (hist.size() > 500) hist.pop_front();
     }
 }
 
@@ -57,7 +62,3 @@ const std::deque<PricePoint>& PriceFetcher::getHistory(const std::string& symbol
     }
     return empty;
 }
-
-
-
-
