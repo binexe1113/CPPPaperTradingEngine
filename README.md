@@ -6,6 +6,8 @@ Desenvoli esta aplicação afim de aprender sobre desenvolvimento de uma interfa
 
 Nele estão inclusas todas as 82 ações presentes no IBOVESPA *(26/09)*
 
+> **Nota:** Por motivos legais, a versão release disponibilizada utiliza **valores aleatórios como preços das ações**, simulando o mercado sem depender de dados financeiros reais.
+
 
 ## Índice
 
