@@ -4,6 +4,9 @@ Uma engine de **paper trading** que permite simular operações de compra e vend
 
 Desenvoli esta aplicação afim de aprender sobre desenvolvimento de uma interface gráfica em uma linguagem de baixo nivel *(Como c++)* e lidar com APIs.
 
+Nele estão inclusas todas as 82 ações presentes no IBOVESPA *(26/09)*
+
+
 ## Índice
 
 - [Funcionalidades](#funcionalidades)  
@@ -58,8 +61,8 @@ Desenvoli esta aplicação afim de aprender sobre desenvolvimento de uma interfa
 ```cpp
 // Criando um portfólio e comprando ações
 Portfolio portfolio(10000); // capital inicial 10.000
-portfolio.buy("AAPL", 10, 150.0); // compra 10 ações de AAPL a 150 cada
-portfolio.sell("AAPL", 5, 155.0); // vende 5 ações de AAPL a 155 cada
+portfolio.buy("TIMS3.SA", 10, 150.0); // compra 10 ações de AAPL a 150 cada
+portfolio.sell("TIMS3.SA", 5, 155.0); // vende 5 ações de AAPL a 155 cada
 ```
 
 Saída esperada:
@@ -67,8 +70,8 @@ Saída esperada:
 ```
 Saldo atual: 10075
 Histórico de operações:
-[COMPRA] AAPL 10 x 150
-[VENDA] AAPL 5 x 155
+[COMPRA] TIMS3.SA 10 x 150
+[VENDA] TIMS3.SA 5 x 155
 ```
 
 ## Contribuindo
