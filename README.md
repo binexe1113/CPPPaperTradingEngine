@@ -2,6 +2,8 @@
 
 Uma engine de **paper trading** que permite simular operações de compra e venda de ações em tempo real sem arriscar dinheiro real. Ideal para testar estratégias de investimento, estudar comportamento de mercado e validar algoritmos de trading.
 
+Desenvoli esta aplicação afim de aprender sobre desenvolvimento de uma interface gráfica em uma linguagem de baixo nivel *(Como c++)* e lidar com APIs.
+
 ## Índice
 
 - [Funcionalidades](#funcionalidades)  
